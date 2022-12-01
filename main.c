@@ -120,7 +120,6 @@ int hasWinner(int gameBoard[3][3]) {
     }
 }
 
-/* returns maximum value between two input */
 int max(int a, int b) {
     if (a > b) {
         return a;
@@ -129,7 +128,6 @@ int max(int a, int b) {
     }
 }
 
-/* returns minimum value between two input */
 int min(int a, int b) {
     if (a < b) {
         return a;
@@ -143,9 +141,9 @@ int minimax(int gameBoard[3][3], int depth, int isMax, int numbers[9], int alpha
     int score = hasWinner(gameBoard);
     if (score) {
         if (isMax) {
-            return -1;
+            return -10 - depth;
         } else {
-            return 1;
+            return 10 + depth;
         }
     } else if (isFull(gameBoard)) {
         return 0;
@@ -157,7 +155,7 @@ int minimax(int gameBoard[3][3], int depth, int isMax, int numbers[9], int alpha
             for (int j = 0; j < 3; j++) {
                 if (gameBoard[i][j] == 0) {
                     for (int k = 0; k < 9; k++) {
-                        if (numbers[k] == 0 && k%2 == 1) {
+                        if (numbers[k] == 0 && k % 2 == 0) {
                             gameBoard[i][j] = k + 1;
                             numbers[k] = 1;
                             best = max(best, minimax(gameBoard, depth + 1, 0, numbers, alpha, beta));
@@ -179,7 +177,7 @@ int minimax(int gameBoard[3][3], int depth, int isMax, int numbers[9], int alpha
             for (int j = 0; j < 3; j++) {
                 if (gameBoard[i][j] == 0) {
                     for (int k = 0; k < 9; k++) {
-                        if (numbers[k] == 0 && k%2 == 0) {
+                        if (numbers[k] == 0 && k % 2 == 1) {
                             gameBoard[i][j] = k + 1;
                             numbers[k] = 1;
                             best = min(best, minimax(gameBoard, depth + 1, 1, numbers, alpha, beta));
@@ -198,6 +196,7 @@ int minimax(int gameBoard[3][3], int depth, int isMax, int numbers[9], int alpha
     }
 }
 
+
 /* Read the user inputs to place a number on the game board.
    In Project Part 1, you can assume that the user inputs must be valid. */
 void placeNumber(int gameBoard[3][3], int numbers[9], int currentPlayer) {
@@ -206,6 +205,34 @@ void placeNumber(int gameBoard[3][3], int numbers[9], int currentPlayer) {
     int row, col;
     char position[100], num[100];
     if (currentPlayer == 1) {
+        int bestVal = -1000;
+        int bestRow, bestCol, bestNum;
+        for (int i = 0; i < 3; i++) {
+            for (int j = 0; j < 3; j++) {
+                if (gameBoard[i][j] == 0) {
+                    for (int k = 0; k < 9; k++) {
+                        if (numbers[k] == 0 && k % 2 == 0) {
+                            gameBoard[i][j] = k + 1;
+                            numbers[k] = 1;
+                            int moveVal = minimax(gameBoard, 0, 0, numbers, -1000, 1000);
+                            gameBoard[i][j] = 0;
+                            numbers[k] = 0;
+                            if (moveVal > bestVal) {
+                                bestRow = i;
+                                bestCol = j;
+                                bestNum = k + 1;
+                                bestVal = moveVal;
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        gameBoard[bestRow][bestCol] = bestNum;
+        numbers[bestNum - 1] = 1;
+        int pos = 3 * (2 - bestRow) + bestCol + 1;
+        printf("Computer places %d at %d\n", bestNum, pos);
+    } else {
         printf("### Player %d's turn ###\n", currentPlayer);
         while (1) {
             printf("Input the position:");
@@ -246,8 +273,8 @@ void placeNumber(int gameBoard[3][3], int numbers[9], int currentPlayer) {
                 printf("number used!\n");
                 continue;
             }
-            if (num[0] % 2 == 0) {
-                printf("only odd accepted!\n");
+            if (num[0] % 2 == 1) {
+                printf("only even accepted!\n");
                 continue;
             }
             row = 2 - (position[0] - '1') / 3;
@@ -261,37 +288,9 @@ void placeNumber(int gameBoard[3][3], int numbers[9], int currentPlayer) {
                 break;
             }
         }
-    } else {
-        int bestVal = -1000;
-        int bestRow, bestCol, bestNum;
-        for (int i = 0; i < 3; i++) {
-            for (int j = 0; j < 3; j++) {
-                if(gameBoard[i][j] == 0) {
-                    for (int k = 0; k < 9; k++) {
-                        if (numbers[k] == 0 && k%2 == 1) {
-                            gameBoard[i][j] = k + 1;
-                            numbers[k] = 1;
-                            int moveVal = minimax(gameBoard, 0, 0, numbers, -1000, 1000);
-                            gameBoard[i][j] = 0;
-                            numbers[k] = 0;
-                            if (moveVal > bestVal) {
-                                bestRow = i;
-                                bestCol = j;
-                                bestNum = k + 1;
-                                bestVal = moveVal;
-                            }
-                        }
-                    }
-                }
-            }
-        }
-        gameBoard[bestRow][bestCol] = bestNum;
-        numbers[bestNum-1] = 1;
-        int pos = 3 * (2 - bestRow) + bestCol + 1;
-        printf("Computer places %d at %d\n", bestNum, pos);
-
     }
 }
+
 
 /* The main function */
 int main() {
